@@ -278,7 +278,7 @@ class Variable(object):
         """Define behavior of == when applied to this object
         """
         return (self is other
-            or isinstance(other, Term) and self.term.element == other.term.element
+            or (other, Term) and self.term.element == other.term.element
             or ((isinstance(other, Variable) or isinstance(other, Constant))
                 and self.term.element == other.element))
 

@@ -125,6 +125,50 @@ class KnowledgeBase(object):
         Returns:
             None
         """
+        
+        if(isinstance(fact_or_rule, Fact)):
+            ind = self.facts.index(fact_or_rule)
+            if len(self.facts[ind].supported_by)==0:
+                for supports_fact in self.facts[ind].supports_facts:
+                    if self.facts[ind] in supports_fact.supported_by:
+                        supports_fact.supported_by.remove(self.facts[ind])
+                        
+                        if len(supports_fact.supported_by)<=2:
+                            ind2 = self.facts.index(supports_fact)
+                            self.facts[ind2].supported_by=[]
+                            self.kb_retract(supports_fact)
+                for supports_rule in self.facts[ind].supports_rules:
+                    
+                    if self.facts[ind] in supports_rule.supported_by:
+                        supports_rule.supported_by.remove(self.facts[ind])
+                        if len(supports_rule.supported_by)<=2:
+                            
+                            self.kb_retract(supports_rule)
+                
+                self.facts.remove(fact_or_rule)
+                    
+    
+        elif(isinstance(fact_or_rule, Rule)):
+            ind = self.rules.index(fact_or_rule)
+            if not self.rules[ind].asserted:
+                for supports_fact in self.rules[ind].supports_facts:
+                    if self.rules[ind] in supports_fact.supported_by:
+                         supports_fact.supported_by.remove(self.rules[ind])
+                         
+                         if len(supports_fact.supported_by)<=2:
+                             ind2 = self.facts.index(supports_fact)
+                             self.facts[ind2].supported_by=[]
+                             self.kb_retract(supports_fact)
+                for supports_rule in self.rules[ind].supports_rules:
+                    if self.rules[ind] in supports_rule.supported_by:
+                         supports_rule.supported_by.remove(self.rules[ind])
+                         if len(supports_rule.supported_by)<=2:
+                             self.kb_retract(supports_rule)
+
+                self.rules.remove(fact_or_rule)
+                      
+           
+        
         printv("Retracting {!r}", 0, verbose, [fact_or_rule])
         ####################################################
         # Student code goes here
@@ -142,7 +186,49 @@ class InferenceEngine(object):
         Returns:
             Nothing            
         """
+        
+        first_statement=rule.lhs[0]
+    
+    #print(rule.lhs[1:])
+        
+        first_binding = match(fact.statement, first_statement, bindings=None)
+        #print(first_binding)
+        
+        if(first_binding!=False):
+            if(len(rule.lhs)>1):
+                new_rule=[]
+                new_rule_lhs=[]
+               
+                for counter, value in enumerate(rule.lhs[1:]):
+                    new_rule_lhs.append(instantiate(value, first_binding))
+                
+                
+                new_rule.append(new_rule_lhs)
+                
+                new_rule.append(instantiate(rule.rhs, first_binding))
+                #print(new_rule)
+                infer_rule = Rule(new_rule, supported_by=[fact,rule])
+                
+                fact.supports_rules.append(infer_rule)
+                rule.supports_rules.append(infer_rule)
+            
+                kb.kb_add(infer_rule)
+                
+            else:
+                
+                new_fact = instantiate(rule.rhs, first_binding)
+                infer_rule = Fact(new_fact, supported_by=[fact,rule])
+                
+                
+                #print(new_fact)
+                fact.supports_facts.append(infer_rule)
+                rule.supports_facts.append(infer_rule)
+                
+                kb.kb_add(infer_rule)
+
+
         printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
-            [fact.statement, rule.lhs, rule.rhs])
+                       [fact.statement, rule.lhs, rule.rhs])
+
         ####################################################
         # Student code goes here
