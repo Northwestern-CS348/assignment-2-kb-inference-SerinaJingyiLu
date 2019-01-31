@@ -126,14 +126,14 @@ class KnowledgeBase(object):
             None
         """
         
-        if(isinstance(fact_or_rule, Fact)):
+        if(fact_or_rule in self.facts and isinstance(fact_or_rule, Fact)):
             ind = self.facts.index(fact_or_rule)
             if len(self.facts[ind].supported_by)==0:
                 for supports_fact in self.facts[ind].supports_facts:
                     if self.facts[ind] in supports_fact.supported_by:
                         supports_fact.supported_by.remove(self.facts[ind])
                         
-                        if len(supports_fact.supported_by)<=2:
+                        if supports_fact in self.facts and len(supports_fact.supported_by)<=2:
                             ind2 = self.facts.index(supports_fact)
                             self.facts[ind2].supported_by=[]
                             self.kb_retract(supports_fact)
@@ -141,28 +141,28 @@ class KnowledgeBase(object):
                     
                     if self.facts[ind] in supports_rule.supported_by:
                         supports_rule.supported_by.remove(self.facts[ind])
-                        if len(supports_rule.supported_by)<=2:
+                        if supports_rule in self.rules and len(supports_rule.supported_by)<=2:
                             
                             self.kb_retract(supports_rule)
                 
                 self.facts.remove(fact_or_rule)
                     
     
-        elif(isinstance(fact_or_rule, Rule)):
+        elif(fact_or_rule in self.rules and isinstance(fact_or_rule, Rule)):
             ind = self.rules.index(fact_or_rule)
             if not self.rules[ind].asserted:
                 for supports_fact in self.rules[ind].supports_facts:
                     if self.rules[ind] in supports_fact.supported_by:
                          supports_fact.supported_by.remove(self.rules[ind])
                          
-                         if len(supports_fact.supported_by)<=2:
+                         if supports_fact in self.facts and len(supports_fact.supported_by)<=2:
                              ind2 = self.facts.index(supports_fact)
                              self.facts[ind2].supported_by=[]
                              self.kb_retract(supports_fact)
                 for supports_rule in self.rules[ind].supports_rules:
                     if self.rules[ind] in supports_rule.supported_by:
                          supports_rule.supported_by.remove(self.rules[ind])
-                         if len(supports_rule.supported_by)<=2:
+                         if supports_rule in self.rules and len(supports_rule.supported_by)<=2:
                              self.kb_retract(supports_rule)
 
                 self.rules.remove(fact_or_rule)
